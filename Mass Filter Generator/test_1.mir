@@ -1,5 +1,0 @@
-<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-10T13:27:36">
-<Result Type="PkFilter" Name="1000.1" Color="#2F87A8" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="997.59975" MaxMass="1002.60025" Integrate=0" FindMass ="0" RelMass=1"/>
-<Result Type="PkFilter" Name="1001.2" Color="#D8A364" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="998.697" MaxMass="1003.703" Integrate=0" FindMass ="0" RelMass=1"/>
-<Result Type="PkFilter" Name="1002.3" Color="#825F5C" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="999.79425" MaxMass="1004.80575" Integrate=0" FindMass ="0" RelMass=1"/>
-</ImagingResults>
