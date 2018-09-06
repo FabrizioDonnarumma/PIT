@@ -1,0 +1,22 @@
+<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-09T20:54:42">
+<Result Type="PkFilter" Name="1000.1" Color="#FC66B8" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="999.99999" MaxMass="1000.20001" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1001.2" Color="#937485" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1001.09988" MaxMass="1001.30012" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1002.3" Color="#22DA6E" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1002.19977" MaxMass="1002.40023" Integrate=0" FindMass ="0" RelMass=1"/>
+</ImagingResults>
+<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-09T20:54:44">
+<Result Type="PkFilter" Name="1000.1" Color="#723A3F" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="999.99999" MaxMass="1000.20001" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1001.2" Color="#38A5A6" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1001.09988" MaxMass="1001.30012" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1002.3" Color="#C65DF3" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1002.19977" MaxMass="1002.40023" Integrate=0" FindMass ="0" RelMass=1"/>
+</ImagingResults>
+<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-09T20:54:46">
+<Result Type="PkFilter" Name="1000.1" Color="#30587B" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="999.99999" MaxMass="1000.20001" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1001.2" Color="#7A2756" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1001.09988" MaxMass="1001.30012" Integrate=0" FindMass ="0" RelMass=1"/>
+<Result Type="PkFilter" Name="1002.3" Color="#0BC567" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="1002.19977" MaxMass="1002.40023" Integrate=0" FindMass ="0" RelMass=1"/>
+</ImagingResults>
+<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-10T13:25:59">
+<Result Type="PkFilter" Name="1000.1" Color="#249174" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="997.59975" MaxMass="1002.60025" Integrate=0" FindMass ="0" RelMass=1"/>
+<ImagingResults flexImagingVersion="2.1.15.0" last_modified="2017-10-10T14:35:53">
+<Result Type="PkFilter" Name="1000.1" Color="#6D21C9" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="997.59975" MaxMass="1002.60025" Integrate="0" FindMass ="0" RelMass="1"/>
+<Result Type="PkFilter" Name="1001.2" Color="#BE1079" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="998.697" MaxMass="1003.703" Integrate="0" FindMass ="0" RelMass="1"/>
+<Result Type="PkFilter" Name="1002.3" Color="#161166" Show="1" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" LogScale="0" MinMass="999.79425" MaxMass="1004.80575" Integrate="0" FindMass ="0" RelMass="1"/>
+</ImagingResults>
