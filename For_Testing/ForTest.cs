@@ -41,22 +41,17 @@ namespace For_Testing
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string m = "";
-            string line = ">sp|Q6P7B2_CHAIN_1_408|CNPD1_RAT Protein CNPPD1";
-            int start = Regex.Match(line, @"_*?\s").Index;
-            int stop = line.IndexOf("OS=");
-            if (stop < 0)
-            {
-                m = line.Substring(start+1, line.Length - start-1); //idProteinResults.Add(entry + "," + "Not found");
-            }
-            else
-            {
-                m = line.Substring(start + 1, stop - start - 2);
-
-            }
-            Console.WriteLine(m);
-
-
+            string startTime = DateTime.Now.ToString("MM-dd-yyyy-HH:mm:ss");
+            Console.WriteLine(startTime);
+            Process startNotepad = new Process();
+            startNotepad.StartInfo.FileName = @"C:/Program Files/Notepad++/notepad++.exe";
+            startNotepad.Start();
+            Console.WriteLine("Program started");
+            startNotepad.WaitForExit();
+            string endTime = DateTime.Now.ToString("MM-dd-yyyy-HH:mm:ss");
+            Console.WriteLine(endTime);
+            TimeSpan duration = DateTime.ParseExact(endTime, "MM-dd-yyyy-HH:mm:ss", null).Subtract(DateTime.ParseExact(startTime, "MM-dd-yyyy-HH:mm:ss", null));
+            Console.WriteLine("Duration: "+duration);
         }
 
     }
