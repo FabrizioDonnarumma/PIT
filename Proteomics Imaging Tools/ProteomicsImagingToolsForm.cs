@@ -603,7 +603,7 @@ namespace Proteomics_Imaging_Tools
 
         private void AboutToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Proteomic and Imaging Tools" + Environment.NewLine + "Version 1.0.1" + Environment.NewLine + "© 2017 Murray Group, LSU" + Environment.NewLine + "Contact: fabrizio@lsu.edu", "About Proteomic Database Parser", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("Proteomic and Imaging Tools" + Environment.NewLine + "Version 1.0.4" + Environment.NewLine + "© 2019 Murray Group, LSU" + Environment.NewLine + "Contact: fabrizio@lsu.edu", "About Proteomic and Imaging Tools", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void userManualToolStripMenuItem_Click(object sender, EventArgs e)
@@ -707,8 +707,7 @@ namespace Proteomics_Imaging_Tools
                             currentProtein = "";
                             sequenceArray.Clear();
                         }
-                        //int percentage = (startingLineMWCalculator++) * 100 / lineCount;
-                        //backgroundWorkerMWCalculator.ReportProgress(percentage);
+
                     }
                     currentProtein = line;
                 }
@@ -1715,12 +1714,11 @@ namespace Proteomics_Imaging_Tools
         }
 
         //******************************************************************************************************
-        //***************************************** Peptide Filtering ******************************************
+        //***************************************** Peptide DB Search ******************************************
         //******************************************************************************************************
 
         private void backgroundWorkerPF_DoWork(object sender, DoWorkEventArgs e)
         {
-            string finalHeader = "Protein ID" + "," + "# of matching peptides" + "," + "Protein mass" + "," + "Protein name" + "," + "Matching peptides";
             stopwatchPF.Restart();
 
             // check if DB exists. If not, it creates it.
@@ -1762,10 +1760,31 @@ namespace Proteomics_Imaging_Tools
                 fileExtension = "*.list";
             }
             string[] fileEntries = Directory.GetFiles(inputFolderPF, fileExtension); // generate a list of files
-            int totalFiles = fileEntries.Count();
+            List<string> files = new List<string>();
+            if (PLGSFilesRadioButton.Checked) //eliminate CSV files that are not PLGS files
+            {
+                foreach (string file in fileEntries)
+                {
+                    string firstLine = File.ReadLines(file).First();
+                    if (firstLine.Substring(0, 7) == "protein")
+                    {
+                        files.Add(file);
+                    }
+                }
+            }
+            else // add all files to the final list of files
+            {
+                foreach (string file in fileEntries)
+                {
+                    files.Add(file);
+                }
+
+            }
+
+            int totalFiles = files.Count();
             int fileProcessed = 1;
             // Loop to sample one file at time
-            foreach (string s in fileEntries)
+            foreach (string s in files)
             {
                 if (backgroundWorkerPF.CancellationPending)
                 {
@@ -1774,65 +1793,66 @@ namespace Proteomics_Imaging_Tools
                 }
                 else
                 {
-                    List<string> peptideList = new List<string>();
+                    List<string>[] peptideList = new List<string>[3];
+                    peptideList[0] = new List<string>(); // sequence
+                    peptideList[1] = new List<string>(); // raw score
+                    peptideList[2] = new List<string>(); // intensity
+
                     int sequencesSkipped = 0;
                     int totalsequences;
                     // Choose PLGS or list files
-                    if (PLGSFilesRadioButton.Checked)
-                    {
-                        //PLGS file processing
-                        string firstLine = File.ReadLines(s).First();
-                        if (firstLine.Substring(0, 7) != "protein")
+                    if (PLGSFilesRadioButton.Checked) //PLGS file processing
+                    {                     
+                        var readEngine = new FileHelperEngine<PeptideListToRead>();
+                        var currentFile = readEngine.ReadFile(s) // read the file and retains the sequences with the highest score (first criterium) or highest intensity (second criterium)
+                            .OrderByDescending(x => x.peptide_rawScore).ThenByDescending(x => x.precursor_inten).GroupBy(x => x.peptide_seq).Select(x => x.First()).ToArray(); ;
+
+                        totalsequences = currentFile.Count();
+                        foreach (var line in currentFile) // parse each line of the opened file
                         {
-                            statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nFile #" + fileProcessed.ToString() + " of " + totalFiles.ToString() + " skipped because it is not a PLGS result file."); });
-                            continue;
-                        }
-                        else
-                        {
-                            var readEngine = new FileHelperEngine<PeptideListToRead>();
-                            var currentFile = readEngine.ReadFile(s);                             
-                            totalsequences = currentFile.Count();
-                            foreach (var line in currentFile) // parse each line of the opened file
-                            {
-                                string currentSequence = line.peptide_seq;
-                                   
-                                if (currentSequence.Length < MinimumAAPF.Value) //check if the sequence has > AA than the user defined limit
-                                {
-                                    sequencesSkipped++;
-                                }
-                                else
-                                {
-                                    peptideList.Add(currentSequence);
-                                }
-                            }                             
-                        }
-                    }
-                    else
-                    {
-                        // list file processing
-                        StreamReader currentFile = File.OpenText(s);
-                        string line;
-                        totalsequences = File.ReadLines(s).Count();
-                        while ((line = currentFile.ReadLine()) != null)
-                        {
-                            if (line.Length < MinimumAAPF.Value) //check if the sequence has > AA than the user defined limit
+                            string currentSequence = line.peptide_seq;
+                            string currentRawScore = line.peptide_rawScore.ToString();
+                            string currentIntensity = line.precursor_inten.ToString();
+
+                            if (currentSequence.Length < MinimumAAPF.Value) //check if the sequence has > AA than the user defined limit
                             {
                                 sequencesSkipped++;
                             }
                             else
                             {
-                                peptideList.Add(line);
+                                peptideList[0].Add(currentSequence); // add the sequence in the first column
+                                peptideList[1].Add(currentRawScore); // add the raw score to the second column
+                                peptideList[2].Add(currentIntensity); //add the current intensity to the third column
                             }
+                        }                        
+                    }
+                    else // list file processing
+                    {                        
+                        
+                        List<string> currentRawFile = File.ReadAllLines(s).ToList(); // read the file
+                        List<string> currentFile = currentRawFile.Distinct().ToList(); //Eliminate duplicates
+                        totalsequences = currentFile.Count();
 
+                        foreach (string l in currentFile)
+                        {
+                            if (l.Length < MinimumAAPF.Value) //check if the sequence has > AA than the user defined limit
+                            {
+                                sequencesSkipped++;
+                            }
+                            else
+                            {
+                                peptideList[0].Add(l);
+                                peptideList[1].Add("0"); // add a 0 the raw score to the second column
+                                peptideList[2].Add("0"); //add a 0 the current intensity to the third column
+                            }
                         }
                     }
-                    // Eliminate duplicate peptides.
-                    List<string> finalPeptideList = peptideList.Distinct().ToList();
+
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\n" + sequencesSkipped.ToString() + " out of " + totalsequences.ToString() + " skipped because too short"); });
 
-                    //Creates the temporary peptide list
+                    //Creates the temporary peptide list taking only the first column of the peptide list created above.
                     string tempResultFile = tempFolderPath + @"\peptides.list";
-                    File.AppendAllLines(tempResultFile, finalPeptideList);
+                    File.AppendAllLines(tempResultFile, peptideList[0]);
                     //Launch DB search command
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nAssigning protein to peptides..."); });
                     Process SearchDB = new Process();
@@ -1847,35 +1867,37 @@ namespace Proteomics_Imaging_Tools
                     File.Delete(tempResultFile);
                     //Changes the "|" delimitar to a tab
                     string filetoread = tempFolderPath + @"\peptides.txt";
-                    string text = File.ReadAllText(filetoread);
-                    text = text.Replace("|", "\t");
+                    string text = File.ReadAllText(filetoread).Replace("|", "\t");
                     File.WriteAllText(filetoread, text);
-                    // check for peptides without mathes
-                    var rawFileToRead = File.ReadAllLines(filetoread);
-                    foreach (string line in rawFileToRead)
-                    {
-                        if (line.Contains("No match"))
-                        {
-                            statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\n" + line); });
-                        }
-                    }
-                    var newFileToRead = rawFileToRead.Where(line => !line.Contains("No match"));
+                    // check for peptides without mathes and retains only peptides that have been matched to at least 1 protein
+                    var newFileToRead = File.ReadAllLines(filetoread).Where(line => !line.Contains("No match"));
                     File.WriteAllLines(filetoread, newFileToRead);
                     // read the temporary result files to filter proteins
-                    var readTempEngine = new FileHelperEngine<DatabaseResultsToRead>(); //open the temp file from the search
-                    var tempFile = readTempEngine.ReadFile(filetoread);
-                    //Creates lists for total ID and result ID
+                    var readTempEngine = new FileHelperEngine<DatabaseResultsToRead>(); // Creates  a FileHelper engine for the peptide result file
+                    var tempFile = readTempEngine.ReadFile(filetoread); //open the temp file from the search
+                    int tempFileCount = tempFile.Count();
+                    //Creates lists for total ID and result ID, including separated list for each column of the final file
                     List<string> AllAccessions = new List<string>();
                     List<string> currentResults = new List<string>();
                     List<string> currentCount = new List<string>();
                     List<string> currentMasses = new List<string>();
+                    List<string> currentProtNames = new List<string>();
+                    List<string> currentDbType = new List<string>();
+                    List<string> currentSequences = new List<string>();
+                    List<string> currentUniqueSequences = new List<string>();
+                    List<string> topThreeUnPep = new List<string>();
+                    List<string> topUnPep = new List<string>();
+                    List<string> topThreeAllPep = new List<string>();
                     //Add all accession to the corresponding list
                     foreach (var entry in tempFile)
                     {
                         AllAccessions.Add(entry.AccessionNumber);
                     }
-
+                    
                     //Check if an ID has multiple occurrencies. If it does and is not already in the result list, it adds it to it and it records the number of occurrencies as well as the MW
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = AllAccessions.Count()));
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Step = 1));
                     foreach (string id in AllAccessions)
                     {
                         int indexofID = AllAccessions.IndexOf(id);
@@ -1886,27 +1908,25 @@ namespace Proteomics_Imaging_Tools
                             currentResults.Add(id);
                             currentCount.Add(count.ToString());
                             currentMasses.Add(tempFile[indexofID].ProteinMW);
+                            currentDbType.Add(tempFile[indexofID].DatabaseType);
                         }
+                        partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
                     }
-                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nProteins assigned."); });
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = AllAccessions.Count()));
+
                     // count the total number of hits
                     string hitCount = currentResults.Count().ToString();
+                    
 
-                    // joins the protein result list and the count list
-                    List<string> tempJoinedLists = new List<string>(currentResults.Zip(currentCount, (first, second) => first + "," + second));                   
-                    List<string> joinedLists = new List<string>(tempJoinedLists.Zip(currentMasses, (first, second) => first + "," + second));                    
-
-                    // add protein masses if the peptide search result has a field for it
-                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nAdding protein masses."); });
-
+                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nProteins matched."); });
                     // Add protein names from the DB used for the search
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nAssigning protein names"); });
-                    List<string> idProteinResults = new List<string>();
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = joinedLists.Count()));
+
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = currentResults.Count()));
                     partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Step = 1));
-                    File.WriteAllLines(tempFilePath + "/tempDBHeaders.txt", File.ReadLines(inputFolderPF + @"\" + selectedDBText).Where(line => line.StartsWith(">")));
-                    foreach (string entry in joinedLists)
+                    List<string> dbProtHeaders = File.ReadLines(inputFolderPF + @"\" + selectedDBText).Where(l => l.StartsWith(">")).ToList(); // makes a list of all protein headers                           
+
+                    foreach (string id in currentResults)
                     {
                         if (backgroundWorkerPF.CancellationPending)
                         {
@@ -1915,60 +1935,164 @@ namespace Proteomics_Imaging_Tools
                         }
                         else
                         {
-                            string hit = entry.Split(new[] { ',' }, StringSplitOptions.None)[0];
-                            string proteinName = "";
-                            string modifiedEntry = "|" + hit + "|";
-                            StreamReader DBReader = new StreamReader(tempFilePath + "/tempDBHeaders.txt");                            
-                            string line;
-                            while ((line = DBReader.ReadLine()) != null)
+                            string modifiedEntry = "|" + id + "|"; //create a match with the same pattern as Uniprot Ids                            
+                            string matchingEntry = dbProtHeaders[dbProtHeaders.FindIndex(m => m.Contains(modifiedEntry))];// finds the line contaiing the Uniprot ID
+                            string protName;
+                            int start = Regex.Match(matchingEntry, @"_*?\s").Index;
+                            int stop = matchingEntry.IndexOf("OS=");
+                            if (stop < 0)
                             {
-                                if (line.Contains(modifiedEntry))
-                                {                                    
-                                    int start = Regex.Match(line, @"_*?\s").Index;
-                                    int stop = line.IndexOf("OS=");
-                                    if (stop < 0)
-                                    {
-                                        proteinName = line.Substring(start + 1, line.Length - start - 1); 
-                                    }
-                                    else
-                                    {         
-                                        proteinName = line.Substring(start + 1, stop - start - 2);
-                                        
-                                    }
-                                    idProteinResults.Add(entry + "," + Regex.Replace(proteinName, "[,|]", " -"));
-                                }
-                            };
-                            DBReader.Close();                                                     
-                            partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
-                        }
-                    }
-                    File.Delete(tempFilePath + "/tempDBHeaders.txt");
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = joinedLists.Count()));
-
-                    // associate peptides to each protein hit
-                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nAssigning peptide hits sequences to proteins"); });
-                    List<string> currentResultsCopy = new List<string>(currentResults);
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = tempFile.Count()));
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
-                    foreach (var entry in tempFile)
-                    {
-                        int index = currentResultsCopy.FindIndex(x => x.Equals(entry.AccessionNumber));
-                        if (index > -1)
-                        {
-                            if (idProteinResults[index].Contains("|"))
-                            {
-                                idProteinResults[index] += entry.PeptideSeq + " | ";
+                                protName = matchingEntry.Substring(start + 1, matchingEntry.Length - start - 1);
                             }
                             else
                             {
-                                idProteinResults[index] += "," + entry.PeptideSeq + " | ";
+                                protName = matchingEntry.Substring(start + 1, stop - start - 2);
                             }
+                            currentProtNames.Add(Regex.Replace(protName, "[,|]", " -"));
+                        }
+                        partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
+                    }
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = currentResults.Count()));
+
+                    // associate peptides to each protein hit                    
+                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nAssigning peptide sequences to proteins"); });
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = tempFileCount));
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
+                    foreach (string st in currentResults)
+                    {
+                        currentSequences.Add("");
+                        currentUniqueSequences.Add("None");
+                    }
+                    foreach (var entry in tempFile)
+                    {
+                        int intensityIndex = peptideList[0].FindIndex(a => a == entry.PeptideSeq);
+                        string pepIntensity = "[" + peptideList[2][intensityIndex] + "]";
+                        int index = currentResults.FindIndex(x => x.Equals(entry.AccessionNumber));
+                        if (index > -1)
+                        {
+                            string uniquePep = "";
+                            int dupes = 0;
+                            int st = 0;
+                            while (dupes < 2 && st < tempFileCount) //checks if a peptide is unique
+                            {
+                                if (tempFile[st].PeptideSeq == entry.PeptideSeq)
+                                {
+                                    dupes++;
+                                    st++;
+                                }
+                                else
+                                {
+                                    st++;
+                                }
+                            }
+                            if (dupes <= 1) // if the peptides is uique, it will flag the sequence with an asterisk and add it to the unique peptides list
+                            {
+                                uniquePep = "*";
+                                if (currentUniqueSequences[index] == "None")
+                                {
+                                    currentUniqueSequences[index] = entry.PeptideSeq + uniquePep + " " + pepIntensity + " | ";
+                                }
+                                else
+                                {
+                                    currentUniqueSequences[index] += entry.PeptideSeq + uniquePep + " " + pepIntensity + " | ";
+                                }                                
+                            }
+                            currentSequences[index] += entry.PeptideSeq + uniquePep + " " + pepIntensity + " | ";
                             partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
                         }
                     }
-                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = tempFile.Count()));
 
-                    //Write the result file
+                    // Determining intensities using all peptides
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = currentSequences.Count()));
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
+                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nDetermining intensities using all peptides."); });
+                    foreach (string ent in currentSequences)
+                    {
+                        var pattern = @"\[(\d*?)\] \|";
+                        var matches = Regex.Matches(ent, pattern); // parse the string to obtain the numbers within brackets
+                        List<int> intAllPep = new List<int>(); // list containing all intensities
+                        foreach (var n in matches) // add all intensities to the list
+                        {
+                            int x = 0;
+                            Int32.TryParse(n.ToString().Trim(new char[] { '*', ' ', '[', ']', '|' }), out x);
+                            intAllPep.Add(x);
+                        }
+                        int topthree;
+                        if (intAllPep.Count() < 2) // if there are only 2 intensities, add them together
+                        {
+                            topthree = intAllPep.ToArray().Sum();
+                        }
+                        else //is there are 3 or more, find the 3 most intense and add them together
+                        {
+                            topthree = intAllPep.OrderByDescending(x => x).Take(3).ToArray().Sum();
+                        }
+                        topThreeAllPep.Add(topthree.ToString());// add them to end of the string   
+                        partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
+                    }
+
+                    // Determining intensities using unique peptides
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Maximum = currentSequences.Count()));
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = 0));
+                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nDetermining intensities using unique peptides."); });
+                    foreach (string ent in currentSequences)
+                    {
+                        var pattern = @"\* \[(\d*?)\] \|";
+                        var matches = Regex.Matches(ent, pattern); // parse the string to obtain the numbers within brackets
+                        List<int> intUnPep = new List<int>(); // list containing all intensities from unique peptides
+                        foreach (var n in matches) // add all intensities to the list
+                        {
+                            int x = 0;
+                            Int32.TryParse(n.ToString().Trim(new char[] { '*', ' ', '[', ']', '|' }), out x);
+                            intUnPep.Add(x);
+                        }
+                        if (intUnPep.Any())
+                        {
+                            topUnPep.Add(intUnPep.Max().ToString());// add the most intense unique peptide to its list
+                        }
+                        else
+                        {
+                            topUnPep.Add("0");// Add a zero bvecause there are no unique peptides
+                        }
+                            
+                        int topthree;
+                        if (intUnPep.Count() < 2) // if there are only 2 intensities, add them together
+                        {
+                            topthree = intUnPep.ToArray().Sum();
+                        }
+                        else //is there are 3 or more, find the 3 most intense and add them together
+                        {
+                            topthree = intUnPep.OrderByDescending(x => x).Take(3).ToArray().Sum();
+                        }
+                        topThreeUnPep.Add(topthree.ToString());// add them to end of the string   
+                        partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.PerformStep()));
+                    }
+
+                    // zip together all the lists    
+                    List<string> joinOne = new List<string>(currentResults.Zip(currentDbType, (first, second) => first + "," + second));
+                    List<string> joinTwo = new List<string>(joinOne.Zip(currentCount, (first, second) => first + "," + second));
+                    List<string> joinThree = new List<string>(joinTwo.Zip(currentMasses, (first, second) => first + "," + second));
+                    List<string> joinFour = new List<string>(joinThree.Zip(currentProtNames, (first, second) => first + "," + second));
+                    List<string> joinFive= new List<string>(joinFour.Zip(topThreeAllPep, (first, second) => first + "," + second));
+                    List<string> joinSix = new List<string>(joinFive.Zip(topThreeUnPep, (first, second) => first + "," + second));
+                    List<string> joinSeven = new List<string>(joinSix.Zip(topUnPep, (first, second) => first + "," + second));
+                    List<string> joinEigth = new List<string>(joinSeven.Zip(currentSequences, (first, second) => first + "," + second));
+                    List<string> idProteinResults = new List<string>(joinEigth.Zip(currentUniqueSequences, (first, second) => first + "," + second));
+                    
+                    // determines the number of peptides, unique peptides and the number of proteins with at least 1 unique peptide
+                    int totalUnPep = 0;                    
+                    int protUnique = 0;
+                    foreach (string unique in currentSequences)
+                    {
+                        if (unique.Contains("*"))
+                        {                            
+                            totalUnPep += unique.Count(f => f == '*');
+                            
+                            protUnique++;
+                        }
+                    }
+
+                    //Write the result file      
+                    partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = currentSequences.Count));
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nWriting the result file."); });
                     string resultFilePath = Path.GetDirectoryName(s) + @"\" + Path.GetFileNameWithoutExtension(s) + "_DBSearch.csv";
 
@@ -1986,18 +2110,23 @@ namespace Proteomics_Imaging_Tools
                     File.AppendAllText(resultFilePath, "Database: " + "," + selectedDBText + "," + Environment.NewLine);
                     File.AppendAllText(resultFilePath, "Minimum AA: " + "," + MinimumAAPF.Value.ToString() + "," + Environment.NewLine);
                     File.AppendAllText(resultFilePath, "Minimum peptides: " + "," + minimumPeptidePF.Value.ToString() + "," + Environment.NewLine);
-                    File.AppendAllText(resultFilePath, "Total hits" + "," + hitCount + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total proteins" + "," + hitCount + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total proteins (with unique peptides)" + "," + protUnique.ToString() + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total peptides" + "," + totalsequences.ToString() + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total unique peptides" + "," + totalUnPep.ToString() + Environment.NewLine);
+                    string finalHeader = "Protein ID" + "," + "Database type" + "," + "# of matching peptides" + "," + "Protein mass" + "," + "Protein name" + "," + "Top 3 intensity (all peptides)" + "," + "Top 3 intensity (unique peptides)" + "," + "Top 1 intensity (unique peptides)" + "," + "Matching peptides" + "," + "Matching unique peptides";
                     File.AppendAllText(resultFilePath, finalHeader + Environment.NewLine);
                     File.AppendAllLines(resultFilePath, idProteinResults);
 
                     File.Delete(filetoread);
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nFile #" + fileProcessed.ToString() + " of " + totalFiles.ToString() + " processed."); });
-                        
-                        
+
+
+                    }
+                    int percentage = (fileProcessed++) * 100 / totalFiles;
+                    backgroundWorkerPF.ReportProgress(percentage);
                 }
-                int percentage = (fileProcessed++) * 100 / totalFiles;
-                backgroundWorkerPF.ReportProgress(percentage);
-            }    
+                
             // Write the log file
             File.WriteAllText(inputFolderPF + "/search_log_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".txt", statusLabelPF.Text);
             stopwatchPF.Stop();

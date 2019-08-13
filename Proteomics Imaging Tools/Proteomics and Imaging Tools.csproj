@@ -110,7 +110,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Documents\PIT User Guide.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Examples\Example fasta file.fasta">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -160,4 +160,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /iery "$(TargetDir)*.*" "$(SolutionDir)..\Installer\Deploy"</PostBuildEvent>
+  </PropertyGroup>
 </Project>
