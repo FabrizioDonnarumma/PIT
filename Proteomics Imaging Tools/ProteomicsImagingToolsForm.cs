@@ -1809,12 +1809,13 @@ namespace Proteomics_Imaging_Tools
 
                         totalsequences = currentFile.Count();
                         foreach (var line in currentFile) // parse each line of the opened file
-                        {
+                        {                            
                             string currentSequence = line.peptide_seq;
                             string currentRawScore = line.peptide_rawScore.ToString();
                             string currentIntensity = line.precursor_inten.ToString();
+                            double pepScore = line.peptide_score;
 
-                            if (currentSequence.Length < MinimumAAPF.Value) //check if the sequence has > AA than the user defined limit
+                            if (currentSequence.Length < MinimumAAPF.Value || pepScore <2) //check if the sequence has > AA than the user defined limit
                             {
                                 sequencesSkipped++;
                             }
@@ -1848,7 +1849,7 @@ namespace Proteomics_Imaging_Tools
                         }
                     }
 
-                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\n" + sequencesSkipped.ToString() + " out of " + totalsequences.ToString() + " skipped because too short"); });
+                    statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\n" + sequencesSkipped.ToString() + " out of " + totalsequences.ToString() + " skipped because too short or score too low"); });
 
                     //Creates the temporary peptide list taking only the first column of the peptide list created above.
                     string tempResultFile = tempFolderPath + @"\peptides.list";
