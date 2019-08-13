@@ -111,6 +111,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_D111CC50800365CD418FD9831643A85B"
+        "OwnerKey" = "8:_422BB4F39D0D4BF591F7DE675BEC08F2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_D2D6FC0B90CE45149958C44F6A7F67BE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -137,12 +143,6 @@
         {
         "MsmKey" = "8:_E8F16AB7697F91D23F1164396FF9F508"
         "OwnerKey" = "8:_90F6570C25C5082DA6455AA60E79BA84"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_FF895188E54D05283CFA843953928C41"
-        "OwnerKey" = "8:_422BB4F39D0D4BF591F7DE675BEC08F2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,7 +178,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_FF895188E54D05283CFA843953928C41"
+        "OwnerKey" = "8:_D111CC50800365CD418FD9831643A85B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -606,6 +606,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D111CC50800365CD418FD9831643A85B"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:FileHelpers, Version=3.3.0.0, Culture=neutral, PublicKeyToken=3e0c08d59cc3d657, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_D111CC50800365CD418FD9831643A85B"
+                    {
+                    "Name" = "8:FileHelpers.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:FileHelpers.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_1EDE5E9E22C24BF3A5B0143304D2AF7A"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D2D6FC0B90CE45149958C44F6A7F67BE"
             {
             "SourcePath" = "8:..\\Proteomics Imaging Tools\\Examples\\Example PDBS\\Database.fasta"
@@ -660,37 +691,6 @@
                     }
                 }
             "SourcePath" = "8:Microsoft.WindowsAPICodePack.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_1EDE5E9E22C24BF3A5B0143304D2AF7A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_FF895188E54D05283CFA843953928C41"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:FileHelpers, Version=3.2.7.0, Culture=neutral, PublicKeyToken=3e0c08d59cc3d657, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_FF895188E54D05283CFA843953928C41"
-                    {
-                    "Name" = "8:FileHelpers.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:FileHelpers.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1EDE5E9E22C24BF3A5B0143304D2AF7A"
@@ -830,23 +830,23 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Proteomics and Imaging Tools"
-        "ProductCode" = "8:{FA07682E-CD6B-4C14-8279-C252A41ED209}"
-        "PackageCode" = "8:{AFDAC3B2-7D6B-4D16-8CB7-85AABEA09BEA}"
+        "ProductCode" = "8:{D43FB6B6-73D1-46B2-ABE5-895542B9A44D}"
+        "PackageCode" = "8:{8593B412-89BC-4712-98A2-64239D9D828A}"
         "UpgradeCode" = "8:{D995BCAB-CB34-42B2-BEC2-8415DDA8F80C}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.2"
+        "ProductVersion" = "8:1.0.3"
         "Manufacturer" = "8:Murray Group Software"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:PIT Installer"
-        "Subject" = "8:"
+        "Subject" = "8:Proteomics"
         "ARPCONTACT" = "8:Fabrizio Donnarumma"
         "Keywords" = "8:"
-        "ARPCOMMENTS" = "8:"
+        "ARPCOMMENTS" = "8:Installer for Proteomics and Imaging Tools"
         "ARPURLINFOABOUT" = "8:http://mass-spec.lsu.edu"
         "ARPPRODUCTICON" = "8:"
         "ARPIconIndex" = "3:0"
@@ -1380,7 +1380,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_422BB4F39D0D4BF591F7DE675BEC08F2"
             {
-            "SourcePath" = "8:..\\Proteomics Imaging Tools\\obj\\Debug\\Proteomics and Imaging Tools.exe"
+            "SourcePath" = "8:..\\Proteomics Imaging Tools\\obj\\Release\\Proteomics and Imaging Tools.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1EDE5E9E22C24BF3A5B0143304D2AF7A"
