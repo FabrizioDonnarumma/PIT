@@ -1805,7 +1805,7 @@ namespace Proteomics_Imaging_Tools
                     {                     
                         var readEngine = new FileHelperEngine<PeptideListToRead>();
                         var currentFile = readEngine.ReadFile(s) // read the file and retains the sequences with the highest score (first criterium) or highest intensity (second criterium)
-                            .OrderByDescending(x => x.peptide_rawScore).ThenByDescending(x => x.precursor_inten).GroupBy(x => x.peptide_seq).Select(x => x.First()).ToArray(); ;
+                            .OrderByDescending(x => x.peptide_score).ThenByDescending(x => x.precursor_inten).GroupBy(x => x.peptide_seq).Select(x => x.First()).ToArray(); ;
 
                         totalsequences = currentFile.Count();
                         foreach (var line in currentFile) // parse each line of the opened file
@@ -1815,7 +1815,7 @@ namespace Proteomics_Imaging_Tools
                             string currentIntensity = line.precursor_inten.ToString();
                             double pepScore = line.peptide_score;
 
-                            if (currentSequence.Length < MinimumAAPF.Value || pepScore <2) //check if the sequence has > AA than the user defined limit
+                            if (currentSequence.Length < MinimumAAPF.Value || pepScore < 2) //check if the sequence has > AA than the user defined limit and the score is above 2
                             {
                                 sequencesSkipped++;
                             }
@@ -1871,7 +1871,9 @@ namespace Proteomics_Imaging_Tools
                     string text = File.ReadAllText(filetoread).Replace("|", "\t");
                     File.WriteAllText(filetoread, text);
                     // check for peptides without mathes and retains only peptides that have been matched to at least 1 protein
-                    var newFileToRead = File.ReadAllLines(filetoread).Where(line => !line.Contains("No match"));
+                    var newFileToRead = File.ReadAllLines(filetoread).Where(line => !line.Contains("No match"));                    
+                    int notMatchedPeptides = File.ReadAllLines(filetoread).Where(line => line.Contains("No match")).Count(); ;
+                    int totalPeptides = peptideList[0].Count()-notMatchedPeptides;
                     File.WriteAllLines(filetoread, newFileToRead);
                     // read the temporary result files to filter proteins
                     var readTempEngine = new FileHelperEngine<DatabaseResultsToRead>(); // Creates  a FileHelper engine for the peptide result file
@@ -2091,11 +2093,15 @@ namespace Proteomics_Imaging_Tools
                             protUnique++;
                         }
                     }
+                    
+
 
                     //Write the result file      
                     partialProgressBarPF.Invoke(new Action(() => partialProgressBarPF.Value = currentSequences.Count));
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nWriting the result file."); });
                     string resultFilePath = Path.GetDirectoryName(s) + @"\" + Path.GetFileNameWithoutExtension(s) + "_DBSearch.csv";
+                    string peptideListFilePath = Path.GetDirectoryName(s) + @"\" + Path.GetFileNameWithoutExtension(s) + "_peptides.list";
+
 
                     while (File.Exists(resultFilePath))
                     {
@@ -2113,7 +2119,9 @@ namespace Proteomics_Imaging_Tools
                     File.AppendAllText(resultFilePath, "Minimum peptides: " + "," + minimumPeptidePF.Value.ToString() + "," + Environment.NewLine);
                     File.AppendAllText(resultFilePath, "Total proteins" + "," + hitCount + Environment.NewLine);
                     File.AppendAllText(resultFilePath, "Total proteins (with unique peptides)" + "," + protUnique.ToString() + Environment.NewLine);
-                    File.AppendAllText(resultFilePath, "Total peptides" + "," + totalsequences.ToString() + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total peptides" + "," + peptideList[0].Count().ToString() + Environment.NewLine);
+                    File.AppendAllText(resultFilePath, "Total matched peptides" + "," + totalPeptides.ToString() + Environment.NewLine);                    
+                    File.AppendAllText(resultFilePath, "Total not matched peptides" + "," + notMatchedPeptides.ToString() + Environment.NewLine);
                     File.AppendAllText(resultFilePath, "Total unique peptides" + "," + totalUnPep.ToString() + Environment.NewLine);
                     string finalHeader = "Protein ID" + "," + "Database type" + "," + "# of matching peptides" + "," + "Protein mass" + "," + "Protein name" + "," + "Top 3 intensity (all peptides)" + "," + "Top 3 intensity (unique peptides)" + "," + "Top 1 intensity (unique peptides)" + "," + "Matching peptides" + "," + "Matching unique peptides";
                     File.AppendAllText(resultFilePath, finalHeader + Environment.NewLine);
@@ -2121,8 +2129,8 @@ namespace Proteomics_Imaging_Tools
 
                     File.Delete(filetoread);
                     statusLabelPF.Invoke((MethodInvoker)delegate { statusLabelPF.AppendText("\r\nFile #" + fileProcessed.ToString() + " of " + totalFiles.ToString() + " processed."); });
-
-
+                    // write peptide list file
+                    File.AppendAllLines(peptideListFilePath, peptideList[0]);
                     }
                     int percentage = (fileProcessed++) * 100 / totalFiles;
                     backgroundWorkerPF.ReportProgress(percentage);
